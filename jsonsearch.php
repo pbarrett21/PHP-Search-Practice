@@ -1,7 +1,5 @@
 <?php
 // Paul Barett
-$NOBELPHYSICS = "./Nobel_physics.json";
-$OSCAR = "./2018_Oscar.json";
 
 $DATASOURCES = "./DataSources.json";
 
@@ -29,13 +27,14 @@ function doSearch($filename, $changer, $newval, $searchcategory, $searchterm){
 			if(gettype($val)=="array"){	
 				doSearch($filename, true, $val, $searchcategory, $searchterm);		
 			} else {
-				if($val == $searchterm){
-			
+				if($val == $searchterm){	
 					foreach($decodedjson as $k=>$v){
-						echo $k; echo ": "; echo $v; echo "\n";
-						//if its an array do the thing to print it
-						if(gettype($val)=="array"){
-							doSearch($filename, true, $val, $searchcategory, $searchterm);	
+						if(gettype($v)=="array"){
+							foreach($v as $kv=>$vv){
+								echo $kv; echo ": "; echo $vv; echo "\n";	
+							}		
+						} else {
+							echo $k; echo ": "; echo $v; echo "\n";
 						}
 					}
 				}
@@ -81,8 +80,6 @@ function getJsonSearchTerms($filename){
 		echo "Make sure the file is correct";
 	}
 }
-$catray = getJsonCategories($DATASOURCES);
-$searchray = getJsonSearchTerms($DATASOURCES);
 
 function echoArray($array){
 	for($iter = 0; $iter < count($array); $iter++){
@@ -95,24 +92,53 @@ function echoArray($array){
 }
 
 #echoArray($catray);
-
+function askUser(){
 ?>
 <html>
 	<body>
 		<FORM action="jsonsearch.php" method="get">
-			<select id = "Category" class = "dropdown">
-				<?php echoArray($catray); ?>
+			<select id = "Category" class = "dropdown" name = "category">
+				<?php $DATASOURCES = "./DataSources.json"; $catray = getJsonCategories($DATASOURCES); echoArray($catray); ?>
 			</select>
-			<br>
-			<select id = "Searchterm" class = "dropdown">
-				<?php echoArray($searchray); ?>
+			<br><br>
+			<select id = "Searchterm" class = "dropdown" name = "searchterms">
+				<?php $DATASOURCES = "./DataSources.json"; $searchray = getJsonSearchTerms($DATASOURCES); echoArray($searchray); ?>
 			</select>
-			<br>
-			<input type = "text" name = "searchquery" class = "searchbox">
+			<br><br>
+			<input type = "text" name = "whichfield" class = "searchbox">
 			<INPUT type="submit" value="   Submit   ">
 		</FORM>
 	</body>
 </html>
 <?php
+}
+$DATASOURCES = "./DataSources.json";
+$datacontents = file_get_contents($DATASOURCES);
+$datadecode = json_decode($datacontents, true);
+
+
+if(isset($_GET['category']) && isset($_GET['searchterms']) && isset($_GET['whichfield'])){
+	foreach($datadecode["categories"] as $key=>$val){
+		if($_GET['category'] == $key){
+			$jsonname = $val;
+		}
+	}	
+	doSearch($jsonname, false, [], $_GET['searchterms'], $_GET['whichfield']);
+} else {
+	askUser();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ?>
