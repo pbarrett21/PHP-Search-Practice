@@ -29,12 +29,15 @@ function doSearch($filename, $changer, $newval, $searchcategory, $searchterm){
 			} else {
 				if($val == $searchterm){	
 					foreach($decodedjson as $k=>$v){
-						if(gettype($v)=="array"){
-							foreach($v as $kv=>$vv){
-								echo $kv; echo ": "; echo $vv; echo "\n";	
-							}		
+						if(gettype($v) != "array"){
+							echo $k; echo ": "; echo $v; echo "\n";	
 						} else {
-							echo $k; echo ": "; echo $v; echo "\n";
+							echo $k; echo ": ";
+							foreach($v as $kk=>$vv){
+								foreach($vv as $kkey=>$vval){
+									echo $kkey; echo ": "; echo $vval;
+								}
+							}
 						}
 					}
 				}
