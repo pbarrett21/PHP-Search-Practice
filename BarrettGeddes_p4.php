@@ -2,11 +2,7 @@
 // Paul Barett
 // John Geddes
 
-$DATASOURCES = "./DataSources.json";
-
-$readyet = "";
 function doSearch($filename, $changer, $newval, $searchcategory, $searchterm){
-
 	if(file_exists($filename)){
 		if($GLOBALS['readyet'] != $filename){	//only read and decode any file once instead of once per recursion
 			$jsoncontents = file_get_contents($filename);
@@ -33,7 +29,7 @@ function doSearch($filename, $changer, $newval, $searchcategory, $searchterm){
 						if(gettype($v) != "array"){
 							echo $k . ": " . $v . "<br>";
 						} else {
-							echo "&emsp;" . $k . ":";
+							echo "&emsp;" . $k . ":";	//&emsp; is a tab character in HTML
 							foreach($v as $kk=>$vv){
 								echo "<br>";
 								foreach($vv as $kkey=>$vval){
@@ -45,12 +41,10 @@ function doSearch($filename, $changer, $newval, $searchcategory, $searchterm){
 				}
 			}
 		}
-
 	} else {
 		echo "ERROR READING FILE\n";
 	}
 }
-#doSearch($DATASOURCES, false, [], "firstname", "Peter");
 
 function getJsonCategories($filename) {
 	if(file_exists($filename)){
@@ -96,7 +90,6 @@ function echoArray($array){
 	}
 }
 
-#echoArray($catray);
 function askUser(){
 ?>
 <html>
@@ -120,17 +113,20 @@ function askUser(){
 </html>
 <?php
 }
+
 $DATASOURCES = "./DataSources.json";
 $datacontents = file_get_contents($DATASOURCES);
 $datadecode = json_decode($datacontents, true);
-
 $resultcount = 0;
+$readyet = "";
+
 if(isset($_GET['category']) && isset($_GET['searchterms']) && isset($_GET['whichfield'])){
 	foreach($datadecode["categories"] as $key=>$val){
 		if($_GET['category'] == $key){
 			$jsonname = $val;
 		}
 	}
+
 	doSearch($jsonname, false, [], $_GET['searchterms'], strip_tags($_GET['whichfield']));	//remove html tags in input
 
 	if($resultcount == 0){	//check if no results were listed
