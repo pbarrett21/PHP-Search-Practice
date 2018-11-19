@@ -1,5 +1,6 @@
 <?php
 // Paul Barett
+// John Geddes
 
 $DATASOURCES = "./DataSources.json";
 
@@ -7,15 +8,13 @@ $readyet = "";
 function doSearch($filename, $changer, $newval, $searchcategory, $searchterm){
 
 	if(file_exists($filename)){
-
-		if($GLOBALS['readyet'] != $filename){	//only read and decode any file once instead of once per recursion 
+		if($GLOBALS['readyet'] != $filename){	//only read and decode any file once instead of once per recursion
 			$jsoncontents = file_get_contents($filename);
 			$decodedjson = json_decode($jsoncontents, true);
 			$GLOBALS['readyet'] = $filename;
-			echo "File: "; echo $filename;
-			echo "; Category: "; echo $searchcategory;
-			echo "; Search Term: "; echo $searchterm;
-			echo "\n";
+			echo "File: " . $filename;
+			echo "; Category: " . $searchcategory;
+			echo "; Search Term: " . $searchterm;
 		}
 
 		if($changer != false){	//change value of $decodedjson in foreach to go into subjsons
@@ -23,19 +22,22 @@ function doSearch($filename, $changer, $newval, $searchcategory, $searchterm){
 		}
 
 		foreach($decodedjson as $key=>$val){	//search through json and output search results
-			
-			if(gettype($val)=="array"){	
-				doSearch($filename, true, $val, $searchcategory, $searchterm);		
+			if(gettype($val)=="array"){
+				doSearch($filename, true, $val, $searchcategory, $searchterm);
 			} else {
-				if($val == $searchterm){	
+				if($key == $searchcategory && $val == $searchterm){
+					global $resultcount;
+					$resultcount++;		//increment $resultcount if a result is found
+					echo "<br>";
 					foreach($decodedjson as $k=>$v){
 						if(gettype($v) != "array"){
-							echo $k; echo ": "; echo $v; echo "\n";	
+							echo $k . ": " . $v . "<br>";
 						} else {
-							echo $k; echo ": ";
+							echo "&emsp;" . $k . ":";
 							foreach($v as $kk=>$vv){
+								echo "<br>";
 								foreach($vv as $kkey=>$vval){
-									echo $kkey; echo ": "; echo $vval;
+									echo "&emsp;&emsp;" . $kkey . ": " . $vval . "<br>";
 								}
 							}
 						}
@@ -43,7 +45,7 @@ function doSearch($filename, $changer, $newval, $searchcategory, $searchterm){
 				}
 			}
 		}
-		
+
 	} else {
 		echo "ERROR READING FILE\n";
 	}
@@ -54,7 +56,7 @@ function getJsonCategories($filename) {
 	if(file_exists($filename)){
 		$filecontents = file_get_contents($filename);
 		$decodejson = json_decode($filecontents, true);
-		
+
 		$catcount = 0;
 		$categoryarray = array();
 		foreach($decodejson["categories"] as $key=>$val){
@@ -100,14 +102,17 @@ function askUser(){
 <html>
 	<body>
 		<FORM action="jsonsearch.php" method="get">
+			<p>Select list to search through:<br>
 			<select id = "Category" class = "dropdown" name = "category">
 				<?php $DATASOURCES = "./DataSources.json"; $catray = getJsonCategories($DATASOURCES); echoArray($catray); ?>
 			</select>
-			<br><br>
+			<br>
+			<p>Category:<br>
 			<select id = "Searchterm" class = "dropdown" name = "searchterms">
 				<?php $DATASOURCES = "./DataSources.json"; $searchray = getJsonSearchTerms($DATASOURCES); echoArray($searchray); ?>
 			</select>
-			<br><br>
+			<br>
+			<p>Search:<br>
 			<input type = "text" name = "whichfield" class = "searchbox">
 			<INPUT type="submit" value="   Submit   ">
 		</FORM>
@@ -119,29 +124,20 @@ $DATASOURCES = "./DataSources.json";
 $datacontents = file_get_contents($DATASOURCES);
 $datadecode = json_decode($datacontents, true);
 
-
+$resultcount = 0;
 if(isset($_GET['category']) && isset($_GET['searchterms']) && isset($_GET['whichfield'])){
 	foreach($datadecode["categories"] as $key=>$val){
 		if($_GET['category'] == $key){
 			$jsonname = $val;
 		}
-	}	
-	doSearch($jsonname, false, [], $_GET['searchterms'], $_GET['whichfield']);
+	}
+	doSearch($jsonname, false, [], $_GET['searchterms'], strip_tags($_GET['whichfield']));	//remove html tags in input
+
+	if($resultcount == 0){	//check if no results were listed
+		echo "<br>No results found for the search term and category.";
+	}
 } else {
 	askUser();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ?>
